@@ -262,17 +262,62 @@ fun linearDistanceFromWeapon(entity: Vector2f, weapon: WeaponAPI): Float {
     return (weapon.location - entity).length()
 }
 /**
- * @param entity: In relative coordinates
+ * @param tgt: In relative coordinates
  * @param collRadius: Include any tolerances in here
  * @param aimPoint: Point the weapon is aiming at, deduced from current weapon facing if not provided
  */
-fun determineIfShotWillHit(entity: Vector2f, collRadius: Float, weapon: WeaponAPI, aimPoint: Vector2f? = null) : Boolean{
-    val p = aimPoint?.minus(weapon.location) ?: vectorFromAngleDeg(weapon.currAngle)
-    val e = entity - weapon.location
-    val x = (e.x * p.x + e.y * p.y) / (p.x * p.x + p.y * p.y)
-    return x > 0 && MathUtils.getDistanceSquared(p.times_(x), e) < collRadius * collRadius
+fun determineIfShotWillHit(tgt: CombatEntityAPI, collRadius: Float, weapon: WeaponAPI, aimPoint: Vector2f? = null): Boolean {
+    val aimVector = normalize(aimPoint?.minus(weapon.location) ?: vectorFromAngleDeg(weapon.currAngle))
+    val tgtVelocity = tgt.velocity - (weapon.ship.velocity + aimVector.times_(weapon.projectileSpeed))
+    val tgtLocation = tgt.location - weapon.location
+
+    return intersectionTime(tgtLocation, tgtVelocity, collRadius, 0f) != null
 }
 
 fun effectiveCollRadius(entity: CombatEntityAPI) : Float{
     return entity.collisionRadius * Settings.collisionRadiusMultiplier()
+}
+
+/**
+ * Compute time after which point p moving with speed dp
+ * will intersect circle centered at point 0,0, with initial
+ * radius r expanding with speed dr.
+ * This is done by solving the following equation for t:
+ *
+ * r+dr*t = |p+dp*t|
+ *
+ * The smaller of the two positive solutions is returned.
+ * If no positive solution exists, null is returned.
+ */
+fun intersectionTime(p: Vector2f, dp: Vector2f, r: Float, dr: Float): Float? {
+    val a = dp.lengthSquared() - dr * dr
+    val b = 2f * (p.x * dp.x + p.y * dp.y - r * dr)
+    val c = p.lengthSquared() - r * r
+
+    val (x1, x2) = solve(a, b, c) ?: return null
+
+    if (x1 < 0 && x2 < 0) return null
+    if (x1 < 0 || x2 < 0) return max(x1, x2)
+    return min(x1, x2)
+}
+
+/**
+ * solve quadratic equation
+ */
+fun solve(a: Float, b: Float, c: Float): Pair<Float, Float>? {
+    val d = b * b - 4f * a * c
+    if (d < 0 || (MathUtils.equals(a, 0f) && MathUtils.equals(b, 0f))) {
+        return null
+    }
+    val r = sqrt(d)
+    return if (MathUtils.equals(a, 0f)) {
+        Pair((2 * c) / (-b), (2 * c) / (-b))
+    } else {
+        Pair((-b + r) / (2 * a), (-b - r) / (2 * a))
+    }
+}
+
+fun normalize(v: Vector2f): Vector2f {
+    val l2 = v.lengthSquared()
+    return if (MathUtils.equals(l2, 1f)) v else v.times_(1f / sqrt(l2))
 }

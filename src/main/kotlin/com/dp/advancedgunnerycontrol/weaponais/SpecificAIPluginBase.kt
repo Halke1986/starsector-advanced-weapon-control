@@ -7,7 +7,6 @@ package com.dp.advancedgunnerycontrol.weaponais
 import com.dp.advancedgunnerycontrol.settings.Settings
 import com.dp.advancedgunnerycontrol.typesandvalues.Values
 import com.dp.advancedgunnerycontrol.utils.*
-import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import org.lazywizard.lazylib.combat.CombatUtils
 import org.lazywizard.lazylib.ext.minus
@@ -134,11 +133,6 @@ abstract class SpecificAIPluginBase(
         }
     }
 
-    protected fun compensateTargetPointShipSpeed(tgt: Vector2f, ttt: Float): Vector2f {
-        val vel = weapon.ship?.velocity ?: Vector2f(0.0f, 0.0f)
-        return tgt - (vel times_ ttt)
-    }
-
     // compensates for both player ship and target velocities
     protected fun addPredictedLocationToTargets(potentialTargets: List<CombatEntityAPI>): List<Pair<CombatEntityAPI, Vector2f>> {
         return potentialTargets.map {
@@ -173,23 +167,18 @@ abstract class SpecificAIPluginBase(
         if (!isAimable(weapon)) {
             return getNeutralPosition(weapon)
         }
-        var tgtPoint = tgt.location
+
         // no need to compute stuff for beam or non-aimable weapons
         if (weapon.isBeam || weapon.isBurstBeam) {
-            return tgtPoint
+            return tgt.location
         }
 
-        for (i in 0 until Settings.customAIRecursionLevel()) {
-            val travelT = computeTimeToTravel(tgtPoint)
+        val tgtLocation = tgt.location - weapon.location
+        val tgtVelocity = tgt.velocity - (weapon.ship?.velocity ?: Vector2f(0.0f, 0.0f))
+        val travelT = intersectionTime(tgtLocation, tgtVelocity, 0f, weapon.projectileSpeed)
 
-            val velocityOffset = (tgt.velocity) times_ travelT
-            tgtPoint = compensateTargetPointShipSpeed(tgt.location + velocityOffset, travelT)
-        }
-        return tgtPoint
-    }
-
-    protected fun computeTimeToTravel(tgt: Vector2f): Float {
-        return computeTimeToTravel(weapon, tgt, (1.5f - 0.5f * currentTgtLeadAcc))
+        return if (travelT == null) getNeutralPosition(weapon)
+        else tgt.location + tgtVelocity.times_(travelT)
     }
 
     override fun getTargetShip(): ShipAPI? {
@@ -223,7 +212,7 @@ abstract class SpecificAIPluginBase(
 
         return friendlies.filter {
             val isCloserThanTgt = targetPoint?.let { tp ->  linearDistanceFromWeapon(it.second, weapon) < linearDistanceFromWeapon(tp, weapon)} ?: true
-            determineIfShotWillHit(it.second, effectiveCollRadius(it.first) * Settings.customAIFriendlyFireCaution(), weapon, aimPoint) &&
+            determineIfShotWillHit(it.first, effectiveCollRadius(it.first) * Settings.customAIFriendlyFireCaution(), weapon, aimPoint) &&
                     isCloserThanTgt
         }
     }
@@ -239,7 +228,7 @@ abstract class SpecificAIPluginBase(
         // Note: In a sequence, all calculations are done on the first element before moving to the next
         potentialTargets.asSequence().filter { isInRange(it.second, effectiveCollRadius(it.first)) }.iterator().forEach {
             val effectiveCollisionRadius = effectiveCollRadius(it.first) * aimingToleranceFactor + aimingToleranceFlat
-            if(determineIfShotWillHit(it.second, effectiveCollisionRadius, weapon)) return true
+            if(determineIfShotWillHit(it.first, effectiveCollisionRadius, weapon)) return true
         }
 
         return false
