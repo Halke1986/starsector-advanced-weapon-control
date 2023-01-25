@@ -290,19 +290,24 @@ fun effectiveCollRadius(entity: CombatEntityAPI) : Float{
  * If no positive solution exists, null is returned.
  */
 fun intersectionTime(p: Vector2f, dp: Vector2f, r: Float, dr: Float): Float? {
+    // the solved equation can be expanded the following way:
+    // r + dr * t = |p + dp * t|
+    // r + dr * t = sqrt[ (p.x + dp.x * t)^2 + (p.y + dp.y * t)^2 ]
+    // (r + dr * t)^2 = (p.x + dp.x * t)^2 + (p.y + dp.y * t)^2
+    // 0 = (dp.x^2 + dp.y^2 - dr^2)*t^2 + 2(p.x*dp.x + p.y*dp.y - r*dr)*t + (p.x^2 + p.y^2 - r^2)
     val a = dp.lengthSquared() - dr * dr
     val b = 2f * (p.x * dp.x + p.y * dp.y - r * dr)
     val c = p.lengthSquared() - r * r
 
-    val (x1, x2) = solve(a, b, c) ?: return null
+    val (t1, t2) = solve(a, b, c) ?: return null
 
-    if (x1 < 0 && x2 < 0) return null
-    if (x1 < 0 || x2 < 0) return max(x1, x2)
-    return min(x1, x2)
+    if (t1 < 0 && t2 < 0) return null
+    if (t1 < 0 || t2 < 0) return max(t1, t2)
+    return min(t1, t2)
 }
 
 /**
- * solve quadratic equation
+ * solve quadratic equation [ax^2 + bx + c = 0] for x.
  */
 fun solve(a: Float, b: Float, c: Float): Pair<Float, Float>? {
     val d = b * b - 4f * a * c
