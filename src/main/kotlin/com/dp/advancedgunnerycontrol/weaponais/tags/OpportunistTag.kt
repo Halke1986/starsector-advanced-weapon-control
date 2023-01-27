@@ -21,7 +21,7 @@ class OpportunistTag(weapon: WeaponAPI) : WeaponAITagBase(weapon) {
     }
 
     override fun shouldFire(solution: FiringSolution): Boolean {
-        if(isAimable(weapon) && !determineIfShotWillHit(solution.target, effectiveCollRadius(solution.target), weapon)){
+        if(isAimable(weapon) && !determineIfShotWillHit(solution.aimPoint, effectiveCollRadius(solution.target), weapon)){
             return false
         }
         return isOpportuneTarget(solution, weapon)

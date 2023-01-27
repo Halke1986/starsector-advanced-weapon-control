@@ -211,7 +211,7 @@ abstract class SpecificAIPluginBase(
 
         return friendlies.filter {
             val isCloserThanTgt = solution?.aimPoint?.let { tp -> linearDistanceFromWeapon(it.aimPoint, weapon) < linearDistanceFromWeapon(tp, weapon)} ?: true
-            determineIfShotWillHit(it.target, effectiveCollRadius(it.target) * Settings.customAIFriendlyFireCaution(), weapon, aimPoint) &&
+            determineIfShotWillHit(it.aimPoint, effectiveCollRadius(it.target) * Settings.customAIFriendlyFireCaution(), weapon, aimPoint) &&
                     isCloserThanTgt
         }
     }
@@ -227,7 +227,7 @@ abstract class SpecificAIPluginBase(
         // Note: In a sequence, all calculations are done on the first element before moving to the next
         potentialTargets.asSequence().filter { isInRange(it.aimPoint, effectiveCollRadius(it.target)) }.iterator().forEach {
             val effectiveCollisionRadius = effectiveCollRadius(it.target) * aimingToleranceFactor + aimingToleranceFlat
-            if(determineIfShotWillHit(it.target, effectiveCollisionRadius, weapon)) return true
+            if(determineIfShotWillHit(it.aimPoint, effectiveCollisionRadius, weapon)) return true
         }
 
         return false
