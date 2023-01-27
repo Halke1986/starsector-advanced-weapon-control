@@ -171,7 +171,8 @@ abstract class SpecificAIPluginBase(
 
         val tgtLocation = tgt.location - weapon.location
         val tgtVelocity = tgt.velocity - (weapon.ship?.velocity ?: Vector2f(0.0f, 0.0f))
-        val travelT = intersectionTime(tgtLocation, tgtVelocity, 0f, weapon.projectileSpeed)
+        val projectileSpeed = weapon.projectileSpeed * (1.5f - 0.5f * currentTgtLeadAcc)
+        val travelT = intersectionTime(tgtLocation, tgtVelocity, 0f, projectileSpeed)
 
         return if (travelT == null) getNeutralPosition(weapon)
         else tgt.location + tgtVelocity.times_(travelT)
