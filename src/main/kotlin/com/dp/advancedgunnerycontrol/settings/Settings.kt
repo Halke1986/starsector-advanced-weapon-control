@@ -11,7 +11,6 @@ object Settings : SettingsDefinition() {
     val tagList = addSetting<List<String>>("tagList",listOf("PD", "Fighter", "AvoidShields", "TargetShields", "NoFighters",
         "Hold(Flx>90%)", "Hold(Flx>75%)", "Hold(Flx>50%)", "ConserveAmmo", "Opportunist"))
     val enableCustomAI = addSetting<Boolean>("enableCustomAI", true)
-    val customAIRecursionLevel = addSetting<Int>("customAIRecursionLevel", 1)
     val forceCustomAI = addSetting<Boolean>("forceCustomAI", false)
     val customAITriggerHappiness = addSetting<Float>("customAITriggerHappiness", 1.2f)
     val customAIPerfectTargetLeading = addSetting<Boolean>("customAIAlwaysUsesBestTargetLeading", false)

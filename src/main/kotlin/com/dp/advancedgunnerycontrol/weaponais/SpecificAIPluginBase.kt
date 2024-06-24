@@ -129,11 +129,6 @@ abstract class SpecificAIPluginBase(
         }
     }
 
-    protected fun compensateTargetPointShipSpeed(tgt: Vector2f, ttt: Float): Vector2f {
-        val vel = weapon.ship?.velocity ?: Vector2f(0.0f, 0.0f)
-        return tgt - (vel times_ ttt)
-    }
-
     // compensates for both player ship and target velocities
     protected fun calculateFiringSolutions(potentialTargets: List<CombatEntityAPI>): List<FiringSolution> {
         return potentialTargets.map {
@@ -168,23 +163,19 @@ abstract class SpecificAIPluginBase(
         if (!isAimable(weapon)) {
             return getNeutralPosition(weapon)
         }
-        var tgtPoint = tgt.location
+
         // no need to compute stuff for beam or non-aimable weapons
         if (weapon.isBeam || weapon.isBurstBeam) {
-            return tgtPoint
+            return tgt.location
         }
 
-        for (i in 0 until Settings.customAIRecursionLevel()) {
-            val travelT = computeTimeToTravel(tgtPoint)
+        val tgtLocation = tgt.location - weapon.location
+        val tgtVelocity = tgt.velocity - (weapon.ship?.velocity ?: Vector2f(0.0f, 0.0f))
+        val projectileSpeed = weapon.projectileSpeed * (1.5f - 0.5f * currentTgtLeadAcc)
+        val travelT = intersectionTime(tgtLocation, tgtVelocity, 0f, projectileSpeed)
 
-            val velocityOffset = (tgt.velocity) times_ travelT
-            tgtPoint = compensateTargetPointShipSpeed(tgt.location + velocityOffset, travelT)
-        }
-        return tgtPoint
-    }
-
-    protected fun computeTimeToTravel(tgt: Vector2f): Float {
-        return computeTimeToTravel(weapon, tgt, (1.5f - 0.5f * currentTgtLeadAcc))
+        return if (travelT == null) getNeutralPosition(weapon)
+        else tgt.location + tgtVelocity.times_(travelT)
     }
 
     override fun getTargetShip(): ShipAPI? {

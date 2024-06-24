@@ -151,7 +151,7 @@ tasks {
                             }
                         ]
                     }
-                """.trimIndent()
+                """.trimIndent().replace("\n", "\r\n")
             )
 
         File(projectDir, "data/config/version/version_files.csv")
@@ -160,7 +160,7 @@ tasks {
                     version file
                     ${Variables.modId}.version
 
-                """.trimIndent()
+                """.trimIndent().replace("\n", "\r\n")
             )
 
         File(projectDir, "${Variables.modId}.version")
@@ -179,7 +179,7 @@ tasks {
                         },
                         "directDownloadURL": "https://github.com/DesperatePeter/starsector-advanced-weapon-control/releases/download/${version._1}.${version._2}.${version._3}/AdvancedGunneryControl-${version._1}.${version._2}.${version._3}.zip"
                     }
-                """.trimIndent()
+                """.trimIndent().replace("\n", "\r\n")
             )
 
 
@@ -199,7 +199,7 @@ tasks {
                         <artifactId>AdvancedGunneryControl</artifactId>
                         <version>${Variables.modVersion}</version>
                     </project>
-                """.trimIndent()
+                """.trimIndent().replace("\n", "\r\n")
                 )
         }
 
@@ -286,14 +286,6 @@ tasks {
                    |   
                    |   #                                 #### CUSTOM AI CONFIGURATION  ####
                    |   # NOTE: All the stuff here is mainly here to facilitate testing. But feel free to play around with the settings here!
-                   |   
-                   |   # Define the number of calculation steps the AI should perform per time frame to compute firing solutions.
-                   |   # higher values -> slightly better AI but worse performance (0 means just aim at current target position).
-                   |   # performance cost increases linearly, firing solution accuracy approx. logarithmically (recommended: 1-2)
-                   |   # I.e. doubling this value doubles the time required to compute firing solutions but only increases their
-                   |   # accuracy a little bit.
-                   |   # I believe that 1 is the value used in Vanilla
-                   |   ,"customAIRecursionLevel" : 1 # <---- EDIT HERE (maybe)----                   
                    |   
                    |   # Any positive or negative float possible, reasonable values: between 0.7 ~ 2.0 or so
                    |   # 1.0 means "fire if shot will land within 1.0*(targetHitbox+10)"
